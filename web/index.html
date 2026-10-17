@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SleepStopper Pro | Keep-Awake, History & Power Monitor</title>
+  <meta name="description" content="System keep-awake utility with session history tracking, real-time hardware resource and power monitoring.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient-glow ambient-glow-1"></div>
+  <div class="ambient-glow ambient-glow-2"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title-wrap">
+            <h1 class="brand-title">SleepStopper <span class="badge-pro">PRO</span></h1>
+            <span class="version-tag">Session History Edition</span>
+          </div>
+          <p class="brand-sub">Native Windows Power Lock • Instance Archiver • Resource Monitor</p>
+        </div>
+      </div>
+
+      <div class="header-status-group">
+        <div class="status-badge" id="global-status-badge">
+          <span class="status-dot"></span>
+          <span id="status-badge-text">IDLE / STOPPED</span>
+        </div>
+        <div class="power-source-badge" id="power-source-badge" title="System Power State">
+          <span class="power-icon">⚡</span>
+          <span id="power-source-text">AC Powered</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="dashboard-grid">
+      <!-- Left Column: Controls & Core Card -->
+      <section class="card control-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Session Controller</h2>
+            <p class="card-desc">Start a session; on stop, it is archived to history</p>
+          </div>
+          <div class="mode-pill" id="engine-mode-pill">Baseline Engine</div>
+        </div>
+
+        <!-- Radar Ring & Next Ping Countdown -->
+        <div class="radar-container">
+          <div class="radar-ring" id="radar-ring">
+            <div class="radar-core">
+              <span class="radar-label">NEXT PING IN</span>
+              <span class="countdown-digits" id="countdown-display">60<span class="unit">s</span></span>
+              <span class="radar-sub" id="countdown-sub">Ready to start</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interval Configuration -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="interval-input" class="form-label">PING INTERVAL (SECONDS)</label>
+            <span class="interval-hint" id="interval-hint">Triggers every 60s</span>
+          </div>
+          <div class="input-with-presets">
+            <input 
+              type="number" 
+              id="interval-input" 
+              min="2" 
+              max="3600" 
+              value="60" 
+              class="number-input"
+            />
+            <div class="preset-buttons">
+              <button type="button" class="preset-btn" data-sec="15">15s</button>
+              <button type="button" class="preset-btn active" data-sec="60">60s</button>
+              <button type="button" class="preset-btn" data-sec="120">2m</button>
+              <button type="button" class="preset-btn" data-sec="300">5m</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Safe Mode Switches -->
+        <div class="toggles-panel">
+          <label class="toggle-item" title="Windows SetThreadExecutionState prevents display off & sleep">
+            <input type="checkbox" id="toggle-power-api" checked />
+            <span class="toggle-slider"></span>
+            <div class="toggle-text">
+              <span class="toggle-name">Native Windows Power Lock</span>
+              <span class="toggle-detail">Zero admin required • Prevents OS sleep</span>
+            </div>
+          </label>
+
+          <label class="toggle-item" title="Sends virtual F15 key to keep Teams/Slack active without typing anything">
+            <input type="checkbox" id="toggle-f15" checked />
+            <span class="toggle-slider"></span>
+            <div class="toggle-text">
+              <span class="toggle-name">Harmless F15 Signal</span>
+              <span class="toggle-detail">Resets Teams/Slack idle status without typing</span>
+            </div>
+          </label>
+
+          <label class="toggle-item" title="Moves mouse 2px right and immediately back to original coordinate">
+            <input type="checkbox" id="toggle-mouse" checked />
+            <span class="toggle-slider"></span>
+            <div class="toggle-text">
+              <span class="toggle-name">2px Cursor Nudge</span>
+              <span class="toggle-detail">Instant return to origin • Zero screen drift</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Start / Stop Button -->
+        <div class="action-row">
+          <button id="toggle-btn" class="btn btn-primary" type="button">
+            <span class="btn-icon" id="btn-icon">▶</span>
+            <span id="btn-text">START SLEEP STOPPER</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Column: Current Session, Lifetime Stats, History, Resources -->
+      <section class="right-column">
+        <!-- Live & Background Statistics -->
+        <div class="stats-section">
+          <!-- 1. Current Session Live Stats (Resets to 0 on stop) -->
+          <div class="section-title-row">
+            <div class="section-header-wrap">
+              <h3 class="section-title">Current Session Live</h3>
+              <span class="badge-reset-tag">Resets to 0 on Stop</span>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card card-accent-glow">
+              <div class="stat-icon-wrap icon-cyan">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">CURRENT DURATION</span>
+                <span class="stat-value" id="stat-current-duration">00:00:00</span>
+                <span class="stat-caption" id="stat-current-status-note">Status: Stopped (Reset)</span>
+              </div>
+            </div>
+
+            <div class="stat-card card-accent-glow">
+              <div class="stat-icon-wrap icon-emerald">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">CURRENT SESSION PINGS</span>
+                <span class="stat-value" id="stat-current-pings">0</span>
+                <span class="stat-caption" id="stat-last-ping">Last: None</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Lifetime Background Stats (Keeps accumulating) -->
+          <div class="section-title-row" style="margin-top: 14px;">
+            <div class="section-header-wrap">
+              <h3 class="section-title">Lifetime Background Usage</h3>
+              <span class="badge-bg-tag">Background Accumulation</span>
+            </div>
+            <button id="clear-history-btn" class="text-link-btn" title="Clear all history and lifetime stats">Clear All History</button>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon-wrap icon-violet">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">ALL-TIME TOTAL TIME</span>
+                <span class="stat-value" id="stat-lifetime-time">00:00:00</span>
+                <span class="stat-caption">Combined active usage</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap icon-amber">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10"></path>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">COMPLETED SESSIONS</span>
+                <span class="stat-value" id="stat-history-count">0</span>
+                <span class="stat-caption" id="stat-lifetime-pings">Total Pings: 0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Session History Log Table (Archived on Stop) -->
+        <div class="card history-card">
+          <div class="card-header">
+            <div>
+              <div class="history-title-row">
+                <h3 class="card-title">Archived Session History</h3>
+                <span class="history-badge" id="history-badge">0 Archived</span>
+              </div>
+              <p class="card-desc">Every stopped session is automatically cataloged here</p>
+            </div>
+          </div>
+
+          <div class="history-table-container">
+            <table class="history-table" id="history-table">
+              <thead>
+                <tr>
+                  <th>Session</th>
+                  <th>Date</th>
+                  <th>Start</th>
+                  <th>Stop</th>
+                  <th>Duration</th>
+                  <th>Pings</th>
+                  <th>Interval</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <!-- Dynamically populated from session_history -->
+              </tbody>
+            </table>
+            <div class="empty-history-state" id="empty-history-state">
+              <span>No completed sessions yet. Click "Start" and then "Stop" to archive your first session.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Resource & Power Monitor (Baseline for Phase 2) -->
+        <div class="card resource-card">
+          <div class="card-header">
+            <div>
+              <div class="resource-title-row">
+                <h3 class="card-title">System & Power Resource Monitor</h3>
+                <span class="benchmark-tag">Baseline Benchmark</span>
+              </div>
+              <p class="card-desc">Real-time hardware footprint of this application for pre/post optimization comparison</p>
+            </div>
+          </div>
+
+          <div class="resource-meters-grid">
+            <!-- Process CPU Usage -->
+            <div class="meter-box">
+              <div class="meter-header">
+                <span class="meter-name">PROCESS CPU USAGE</span>
+                <span class="meter-val" id="meter-proc-cpu">0.00%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill fill-cyan" id="bar-proc-cpu" style="width: 2%;"></div>
+              </div>
+              <span class="meter-sub">Target for Phase 2 optimization: &lt; 0.01%</span>
+            </div>
+
+            <!-- Process Memory Footprint -->
+            <div class="meter-box">
+              <div class="meter-header">
+                <span class="meter-name">PROCESS RAM FOOTPRINT</span>
+                <span class="meter-val" id="meter-proc-ram">0.0 MB</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill fill-violet" id="bar-proc-ram" style="width: 15%;"></div>
+              </div>
+              <span class="meter-sub">Working set memory footprint</span>
+            </div>
+
+            <!-- Overall System CPU -->
+            <div class="meter-box">
+              <div class="meter-header">
+                <span class="meter-name">TOTAL SYSTEM CPU</span>
+                <span class="meter-val" id="meter-sys-cpu">0.0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill fill-emerald" id="bar-sys-cpu" style="width: 5%;"></div>
+              </div>
+              <span class="meter-sub">Global machine load</span>
+            </div>
+
+            <!-- System Memory Load -->
+            <div class="meter-box">
+              <div class="meter-header">
+                <span class="meter-name">TOTAL SYSTEM RAM</span>
+                <span class="meter-val" id="meter-sys-ram">0.0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill fill-amber" id="bar-sys-ram" style="width: 50%;"></div>
+              </div>
+              <span class="meter-sub">Global physical memory used</span>
+            </div>
+          </div>
+
+          <!-- Optimization Callout -->
+          <div class="optimization-callout">
+            <div class="callout-icon">💡</div>
+            <div class="callout-body">
+              <strong>Optimization Readiness (Phase 2):</strong>
+              <span>This panel logs your baseline CPU and Memory consumption while running. Once you test this version, we will engineer the ultra-low power update (event-driven timer & minimal polling) to compare resource savings!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Timeline Logs -->
+        <div class="card logs-card">
+          <div class="card-header">
+            <h3 class="card-title">Live Activity Log</h3>
+            <span class="log-count-tag" id="log-count-tag">Live Feed</span>
+          </div>
+          <div class="logs-feed" id="logs-feed">
+            <!-- Dynamic log entries will appear here -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <span>SleepStopper Pro • Automatic Session Archiving & Hardware Monitor</span>
+      <span class="footer-hint">Press <kbd>Ctrl+C</kbd> in your terminal to terminate the server anytime</span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "lifetime_active_seconds": 139551.3,
+  "lifetime_pings": 366,
+  "history": [
+    {
+      "id": 4,
+      "date": "2026-10-17",
+      "start_time": "14:43:05",
+      "stop_time": "11:05:49",
+      "duration_seconds": 73364.9,
+      "pings": 159,
+      "interval": 60
+    },
+    {
+      "id": 3,
+      "date": "2026-10-14",
+      "start_time": "16:54:56",
+      "stop_time": "10:37:02",
+      "duration_seconds": 63725.5,
+      "pings": 167,
+      "interval": 60
+    },
+    {
+      "id": 2,
+      "date": "2026-10-13",
+      "start_time": "15:17:57",
+      "stop_time": "15:39:08",
+      "duration_seconds": 1271.1,
+      "pings": 21,
+      "interval": 60
+    },
+    {
+      "id": 1,
+      "date": "2026-10-13",
+      "start_time": "12:18:42",
+      "stop_time": "12:38:32",
+      "duration_seconds": 1189.8,
+      "pings": 19,
+      "interval": 60
+    }
+  ]
+}
